@@ -56,6 +56,155 @@
       </tags>
   </entry>
   <entry>
+    <title>密码算法RSA、AES的介绍与js实现</title>
+    <url>/2025/01/16/rsa-aes/</url>
+    <content><![CDATA[<h1>RSA算法</h1>
+<p><img src="rsa-aes-1.png" alt=""></p>
+<blockquote>
+<p>参考：<br>
+<a href="https://blog.csdn.net/a745233700/article/details/102341542">https://blog.csdn.net/a745233700/article/details/102341542</a><br>
+<a href="https://blog.csdn.net/IT_luosong/article/details/128228961">https://blog.csdn.net/IT_luosong/article/details/128228961</a><br>
+<a href="https://www.jianshu.com/p/b32fc387d8ad">https://www.jianshu.com/p/b32fc387d8ad</a></p>
+</blockquote>
+<h2 id="RSA加密">RSA加密</h2>
+<p><img src="rsa-aes-2.png" alt=""><br>
+RSA的加密过程可以使用一个通式来表达：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>密文</mtext><mo>=</mo><mtext>明</mtext><msup><mtext>文</mtext><mi>E</mi></msup><mi>m</mi><mi>o</mi><mi>d</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">密文 = 明文^EmodN
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">密文</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8913em;"></span><span class="mord cjk_fallback">明</span><span class="mord"><span class="mord cjk_fallback">文</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">E</span></span></span></span></span></span></span></span><span class="mord mathnormal">m</span><span class="mord mathnormal">o</span><span class="mord mathnormal">d</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span></span></p>
+<p>E、N是RSA加密的密钥，也就是说E和N的组合就是公钥，我们用(E,N)来表示公钥：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>公钥</mtext><mo>=</mo><mtext>（</mtext><mi>E</mi><mtext>，</mtext><mi>N</mi><mtext>）</mtext></mrow><annotation encoding="application/x-tex">公钥 = （E，N）
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">公钥</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">（</span><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="mord cjk_fallback">，</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord cjk_fallback">）</span></span></span></span></span></p>
+<p>常用<strong>jsrsasign.js</strong>库实现数字签名过程：</p>
+ <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 公钥（标准的pem格式，含开始标记，结束标记）</span></span><br><span class="line"><span class="keyword">let</span> pk=<span class="string">&quot;-----BEGIN PUBLIC KEY-----\n&quot;</span> +</span><br><span class="line">    <span class="string">&quot;MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQD3XSdz1MnzazBEN5KOfTx0IyVJ\n&quot;</span> +</span><br><span class="line">    <span class="string">&quot;Z5wb57isrCuHDhnYXwtmdhQalgII0fozeeFpMpAvlnmHC1kpW7XVGvZnLx3bWbCE\n&quot;</span> +</span><br><span class="line">    <span class="string">&quot;bf+pMSW4kmQuI+5cxRUJbCl7sdaODBrINgERHPICVC18AJLThEVMHyjuR6Jn4zQm\n&quot;</span> +</span><br><span class="line">    <span class="string">&quot;yYNbReSktY/BrFTvMQIDAQAB\n&quot;</span> +</span><br><span class="line">    <span class="string">&quot;-----END PUBLIC KEY-----&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 原文</span></span><br><span class="line"><span class="keyword">var</span> src = <span class="string">&quot;好厉害&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 加密</span></span><br><span class="line"><span class="comment">// 读取解析pem格式的公钥, 生成秘钥实例 (RSAKey) </span></span><br><span class="line"><span class="keyword">var</span> pub = <span class="variable constant_">KEYUTIL</span>.<span class="title function_">getKey</span>(pk);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用encrypt方法, 传入明文和公钥实例, 加密后的返回值是16进制字符串.</span></span><br><span class="line"><span class="keyword">var</span> enc = <span class="variable constant_">KJUR</span>.<span class="property">crypto</span>.<span class="property">Cipher</span>.<span class="title function_">encrypt</span>(src,pub);</span><br><span class="line"><span class="comment">// console.log(enc);</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果为了方便放在URL上, 建议使用hextob64u(enc)将其转为Base64编码.（它会将+替换成-,/替换成_,去掉尾部补全的=）</span></span><br><span class="line"><span class="comment">// console.log(hextob64(enc));</span></span><br></pre></td></tr></table></figure>
+<h2 id="RSA解密">RSA解密</h2>
+<p><img src="rsa-aes-3.png" alt=""><br>
+RSA的解密同样可以使用一个通式来表达：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>明文</mtext><mo>=</mo><mtext>密</mtext><msup><mtext>文</mtext><mi>D</mi></msup><mi>m</mi><mi>o</mi><mi>d</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">明文 = 密文^DmodN
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">明文</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8913em;"></span><span class="mord cjk_fallback">密</span><span class="mord"><span class="mord cjk_fallback">文</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span></span></span></span></span></span></span></span><span class="mord mathnormal">m</span><span class="mord mathnormal">o</span><span class="mord mathnormal">d</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span></span></p>
+<p>D和N的组合就是私钥：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>私钥</mtext><mo>=</mo><mo stretchy="false">(</mo><mi>D</mi><mo separator="true">,</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">私钥 = (D,N)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">私钥</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span></span></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"> <span class="comment">// 私钥</span></span><br><span class="line"> <span class="keyword">let</span> priK = <span class="string">&quot;-----BEGIN PRIVATE KEY-----\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAPddJ3PUyfNrMEQ3\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;ko59PHQjJUlnnBvnuKysK4cOGdhfC2Z2FBqWAgjR+jN54WkykC+WeYcLWSlbtdUa\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;9mcvHdtZsIRt/6kxJbiSZC4j7lzFFQlsKXux1o4MGsg2AREc8gJULXwAktOERUwf\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;KO5HomfjNCbJg1tF5KS1j8GsVO8xAgMBAAECgYEA6eG1JMrj63jEmStmMb1txG1a\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;mu4Q5z2QGgtr2HVXsIIlGEq6tWxyHf7TL4qkuz9onuYKn8n2Eqm44fZtVaBx+5ES\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;zRpIvlTvaxmVu0HZ1hYAzUw1XyRnXNMKpL5tT4GCjm8+QGPzlGxgXI1sNg8r9Jaw\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;9zRUYeA6LQR9RIMkHWUCQQD8QojjVoGjtiunoh/N8iplhUszZIavAEvmDIE+kVy+\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;pA7hvlukLw6JMc7cfTcnHyxDo9iHVIzrWlTuKRq9KWVLAkEA+wgJS2sgtldnCVn6\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;tJKFVwsHrWhMIU29msPPbNuWUD23BcKE/vehIyFu1ahNA/TiM40PEnzprQ5JfPxU\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;16S78wJANTfMLTnYy7Lo7sqTLx2BuD0wqjzw9QZ4/KVytsJv8IAn65P/PVn4FRV+\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;8KEx+3zmF7b/PT2nJRe/hycAzxtmlQJBAMrFwQxEqpXfoAEzx4lY2ZBn/nmaR/SW\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;4VNEXCbocVC7qT1j1R5HVMgV13uKiTtq8dUGWmhqsi7x3XayNK5ECPUCQQDZaAN6\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;tvIHApz9OLsXSw0jZirQ6KEYdharXbIVDy1W1sVE3lzLbqLdFp1bxAHQIvsYS5PM\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;A9veSJh372RLJKkj\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;-----END PRIVATE KEY-----&quot;</span>;   </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 解密</span></span><br><span class="line"><span class="comment">// 读取解析pem格式的私钥, 生成秘钥实例 (RSAKey) </span></span><br><span class="line"> <span class="keyword">var</span> prv = <span class="variable constant_">KEYUTIL</span>.<span class="title function_">getKey</span>(priK);</span><br><span class="line"> </span><br><span class="line"> <span class="comment">// 调用encrypt方法, 传入密文和私钥实例进行解密</span></span><br><span class="line"> <span class="keyword">var</span> dec = <span class="variable constant_">KJUR</span>.<span class="property">crypto</span>.<span class="property">Cipher</span>.<span class="title function_">decrypt</span>(enc,prv);</span><br><span class="line"> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;jsrsasign decrypt: &quot;</span>+dec);</span><br></pre></td></tr></table></figure>
+<h2 id="RSA签名">RSA签名</h2>
+<p><img src="rsa-aes-4.png" alt=""><br>
+RSA生成签名的过程可用下列公式来表述：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>签名</mtext><mo>=</mo><mtext>（</mtext><mi>H</mi><mi>a</mi><mi>s</mi><mi>h</mi><mtext>（明文）</mtext><msup><mtext>）</mtext><mi>D</mi></msup><mi>m</mi><mi>o</mi><mi>d</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">签名 = （Hash（明文））^D mod N
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">签名</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8913em;"></span><span class="mord cjk_fallback">（</span><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">h</span><span class="mord cjk_fallback">（明文）</span><span class="mord"><span class="mord cjk_fallback">）</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span></span></span></span></span></span></span></span><span class="mord mathnormal">m</span><span class="mord mathnormal">o</span><span class="mord mathnormal">d</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span></span></p>
+<blockquote>
+<p>Hash函数（摘要算法）：<a href="https://cloud.tencent.com/developer/article/1584742">https://cloud.tencent.com/developer/article/1584742</a></p>
+</blockquote>
+<p align = "center">    
+<img  src="rsa-aes-5.png" width="600" />
+</p>
+常用**jsrsasign.js库**实现数字签名过程：
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 签名步骤: 先建立 key 对象, 构建 signature 实例, 传入 key 初始化 -&gt; 签名</span></span><br><span class="line"><span class="keyword">var</span> key = <span class="variable constant_">KEYUTIL</span>.<span class="title function_">getKey</span>(priK);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(key);</span><br><span class="line"><span class="comment">// 创建 Signature 对象，指定Hash算法</span></span><br><span class="line"><span class="keyword">let</span> signature=<span class="keyword">new</span> <span class="variable constant_">KJUR</span>.<span class="property">crypto</span>.<span class="title class_">Signature</span>(&#123;<span class="attr">alg</span>:<span class="string">&quot;SHA1withRSA&quot;</span>&#125;);</span><br><span class="line"><span class="comment">// 传入key实例, 初始化signature实例</span></span><br><span class="line">signature.<span class="title function_">init</span>(key);</span><br><span class="line"><span class="comment">// 传入待签明文</span></span><br><span class="line">signature.<span class="title function_">updateString</span>(src);</span><br><span class="line"><span class="comment">// 签名, 得到16进制字符结果</span></span><br><span class="line"><span class="keyword">let</span> a = signature.<span class="title function_">sign</span>();</span><br><span class="line"><span class="comment">// 如果为了方便放在URL上, 将其转为常用的Base64编码.</span></span><br><span class="line"><span class="keyword">let</span> sign = <span class="title function_">hextob64</span>(a);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(sign);</span><br></pre></td></tr></table></figure>
+## RSA验签
+![](rsa-aes-6.png)
+RSA的签名验证过程可用下列公式来表述：
+$$摘要 = 签名 ^E mod N$$
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 验签</span></span><br><span class="line"><span class="comment">// !要重新new 一个Signature, 否则, 取摘要和签名时取得摘要不一样, 导致验签误报失败(原因不明)!</span></span><br><span class="line"><span class="keyword">let</span> signatureVf = <span class="keyword">new</span> <span class="variable constant_">KJUR</span>.<span class="property">crypto</span>.<span class="title class_">Signature</span>(&#123;<span class="attr">alg</span>:<span class="string">&quot;SHA1withRSA&quot;</span>,<span class="attr">prvkeypem</span>:pk&#125;);</span><br><span class="line">signatureVf.<span class="title function_">updateString</span>(src);</span><br><span class="line"><span class="comment">// !接受的参数是16进制字符串!</span></span><br><span class="line"><span class="keyword">let</span> b = signatureVf.<span class="title function_">verify</span>(<span class="title function_">b64tohex</span>(sign));</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;jsrsasign verify: &quot;</span>+b);</span><br></pre></td></tr></table></figure>
+<h1>AES算法</h1>
+<p><img src="rsa-aes-7.png" alt=""></p>
+<blockquote>
+<p>参考：<br>
+密码学——AES/DES加密算法原理介绍 - 枫のBlog<br>
+<a href="https://www.cnblogs.com/starwolf/p/3365834.html">https://www.cnblogs.com/starwolf/p/3365834.html</a></p>
+</blockquote>
+<h2 id="加密标准-模式">加密标准 &amp; 模式</h2>
+<p>在AES标准规范中，分组长度只能是128位，也就是说，每个分组为16个字节（每个字节8位）。密钥的长度可以使用128位、192位或256位，如果数据块及密钥长度不足时会补齐。密钥的长度不同，推荐加密轮数也不同，如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th>AES</th>
+<th>密钥长度（32位比特字）</th>
+<th>分组长度(32位比特字)</th>
+<th>加密轮数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AES-128</td>
+<td>4</td>
+<td>4</td>
+<td>10</td>
+</tr>
+<tr>
+<td>AES-192</td>
+<td>6</td>
+<td>4</td>
+<td>12</td>
+</tr>
+<tr>
+<td>AES-256</td>
+<td>8</td>
+<td>4</td>
+<td>14</td>
+</tr>
+</tbody>
+</table>
+<p>AES加密模式：</p>
+<table>
+<thead>
+<tr>
+<th>AES加密模式</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>电码本模式（Electronic Codebook Book (ECB)）</td>
+<td>将整个明文分成若干段相同的小段，然后对每一小段进行加密。</td>
+</tr>
+<tr>
+<td>密码分组链接模式（Cipher Block Chaining (CBC)）</td>
+<td>先将明文切分成若干小段，然后每一小段与初始块或者上一段的密文段进行异或运算后，再与密钥进行加密。</td>
+</tr>
+<tr>
+<td>计算器模式（Counter (CTR)）</td>
+<td>计算器模式不常见，在CTR模式中，有一个自增的算子，这个算子用密钥加密之后的输出和明文异或的结果得到密文，相当于一次一密。这种加密方式简单快速，安全可靠，而且可以并行加密，但是在计算器不能维持很长的情况下，密钥只能使用一次。</td>
+</tr>
+<tr>
+<td>密码反馈模式（Cipher FeedBack (CFB)）</td>
+<td>这种模式较复杂</td>
+</tr>
+<tr>
+<td>输出反馈模式（Output FeedBack (OFB)）</td>
+<td>这种模式较复杂</td>
+</tr>
+</tbody>
+</table>
+<h2 id="加解密流程">加解密流程</h2>
+<p>AES加解密主要有以下几步操作，完整的加解密流程是通过循环以下步骤来完成的，具体如下图表示</p>
+<ul>
+<li>轮密钥加</li>
+<li>字节代换</li>
+<li>行位移</li>
+<li>列混合</li>
+</ul>
+<blockquote>
+<p>具体步骤分析参考：<a href="https://goodapple.top/archives/162">https://goodapple.top/archives/162</a></p>
+</blockquote>
+<p><img src="rsa-aes-8.png" alt=""></p>
+<h2 id="AES加密">AES加密</h2>
+<p><img src="rsa-aes-9.png" alt=""><br>
+设AES加密函数为E，则 C = E(K, P),其中P为明文，K为密钥，C为密文。也就是说，把明文P和密钥K作为加密函数的参数输入，则加密函数E会输出密文C</p>
+<h2 id="AES解密">AES解密</h2>
+<p><img src="rsa-aes-10.png" alt=""><br>
+设AES解密函数为D，则 P = D(K, C),其中C为密文，K为密钥，P为明文。也就是说，把密文C和密钥K作为解密函数的参数输入，则解密函数会输出明文P<br>
+常用<strong>crypto-js库</strong>实现AES加解密过程：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">CryptoJS</span> <span class="keyword">from</span> <span class="string">&#x27;crypto-js&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> key = <span class="string">&#x27;aaaabbbbccccdddd&#x27;</span><span class="comment">//秘钥</span></span><br><span class="line"><span class="keyword">const</span> iv = <span class="string">&#x27;1234567887654321&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 加密</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Encrypt</span> (<span class="params">text</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">CryptoJS</span>.<span class="property">AES</span>.<span class="title function_">encrypt</span>(text, <span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Utf8</span>.<span class="title function_">parse</span>(key), &#123;</span><br><span class="line">    <span class="attr">iv</span>: <span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Utf8</span>.<span class="title function_">parse</span>(iv),<span class="comment">//初始变量</span></span><br><span class="line">    <span class="attr">mode</span>: <span class="title class_">CryptoJS</span>.<span class="property">mode</span>.<span class="property">CBC</span>,<span class="comment">//加密模式</span></span><br><span class="line">    <span class="attr">padding</span>: <span class="title class_">CryptoJS</span>.<span class="property">pad</span>.<span class="property">Pkcs7</span><span class="comment">//填充方式</span></span><br><span class="line">  &#125;).<span class="title function_">toString</span>()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解密</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Decrypt</span> (<span class="params">text</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> decrypted = <span class="title class_">CryptoJS</span>.<span class="property">AES</span>.<span class="title function_">decrypt</span>(text, <span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Utf8</span>.<span class="title function_">parse</span>(key), &#123;</span><br><span class="line">    <span class="attr">iv</span>: <span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Utf8</span>.<span class="title function_">parse</span>(iv),</span><br><span class="line">    <span class="attr">mode</span>: <span class="title class_">CryptoJS</span>.<span class="property">mode</span>.<span class="property">CBC</span>,</span><br><span class="line">    <span class="attr">padding</span>: <span class="title class_">CryptoJS</span>.<span class="property">pad</span>.<span class="property">Pkcs7</span></span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">return</span> decrypted.<span class="title function_">toString</span>(<span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Utf8</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="title class_">Encrypt</span>,</span><br><span class="line">  <span class="title class_">Decrypt</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"><span class="keyword">let</span> text = <span class="variable constant_">AES</span>.<span class="title class_">Encrypt</span>(<span class="string">&#x27;123&#x27;</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(text)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable constant_">AES</span>.<span class="title class_">Decrypt</span>(text))</span><br></pre></td></tr></table></figure>
+<p align = "center">    
+<img  src="nanie.jpg" width="200" />
+</p>
+]]></content>
+      <categories>
+        <category>algorithm</category>
+      </categories>
+      <tags>
+        <tag>algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>px、dp理解</title>
     <url>/2025/05/13/px%E3%80%81dp%E7%90%86%E8%A7%A3/</url>
     <content><![CDATA[<p>最近使用<code>px</code>、<code>dp</code>有点感悟，记录一下~</p>
@@ -222,152 +371,45 @@
       </tags>
   </entry>
   <entry>
-    <title>密码算法RSA、AES的介绍与js实现</title>
-    <url>/2025/01/16/rsa-aes/</url>
-    <content><![CDATA[<h1>RSA算法</h1>
-<p><img src="rsa-aes-1.png" alt=""></p>
-<blockquote>
-<p>参考：<br>
-<a href="https://blog.csdn.net/a745233700/article/details/102341542">https://blog.csdn.net/a745233700/article/details/102341542</a><br>
-<a href="https://blog.csdn.net/IT_luosong/article/details/128228961">https://blog.csdn.net/IT_luosong/article/details/128228961</a><br>
-<a href="https://www.jianshu.com/p/b32fc387d8ad">https://www.jianshu.com/p/b32fc387d8ad</a></p>
-</blockquote>
-<h2 id="RSA加密">RSA加密</h2>
-<p><img src="rsa-aes-2.png" alt=""><br>
-RSA的加密过程可以使用一个通式来表达：</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>密文</mtext><mo>=</mo><mtext>明</mtext><msup><mtext>文</mtext><mi>E</mi></msup><mi>m</mi><mi>o</mi><mi>d</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">密文 = 明文^EmodN
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">密文</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8913em;"></span><span class="mord cjk_fallback">明</span><span class="mord"><span class="mord cjk_fallback">文</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">E</span></span></span></span></span></span></span></span><span class="mord mathnormal">m</span><span class="mord mathnormal">o</span><span class="mord mathnormal">d</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span></span></p>
-<p>E、N是RSA加密的密钥，也就是说E和N的组合就是公钥，我们用(E,N)来表示公钥：</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>公钥</mtext><mo>=</mo><mtext>（</mtext><mi>E</mi><mtext>，</mtext><mi>N</mi><mtext>）</mtext></mrow><annotation encoding="application/x-tex">公钥 = （E，N）
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">公钥</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">（</span><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="mord cjk_fallback">，</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord cjk_fallback">）</span></span></span></span></span></p>
-<p>常用<strong>jsrsasign.js</strong>库实现数字签名过程：</p>
- <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 公钥（标准的pem格式，含开始标记，结束标记）</span></span><br><span class="line"><span class="keyword">let</span> pk=<span class="string">&quot;-----BEGIN PUBLIC KEY-----\n&quot;</span> +</span><br><span class="line">    <span class="string">&quot;MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQD3XSdz1MnzazBEN5KOfTx0IyVJ\n&quot;</span> +</span><br><span class="line">    <span class="string">&quot;Z5wb57isrCuHDhnYXwtmdhQalgII0fozeeFpMpAvlnmHC1kpW7XVGvZnLx3bWbCE\n&quot;</span> +</span><br><span class="line">    <span class="string">&quot;bf+pMSW4kmQuI+5cxRUJbCl7sdaODBrINgERHPICVC18AJLThEVMHyjuR6Jn4zQm\n&quot;</span> +</span><br><span class="line">    <span class="string">&quot;yYNbReSktY/BrFTvMQIDAQAB\n&quot;</span> +</span><br><span class="line">    <span class="string">&quot;-----END PUBLIC KEY-----&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 原文</span></span><br><span class="line"><span class="keyword">var</span> src = <span class="string">&quot;好厉害&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 加密</span></span><br><span class="line"><span class="comment">// 读取解析pem格式的公钥, 生成秘钥实例 (RSAKey) </span></span><br><span class="line"><span class="keyword">var</span> pub = <span class="variable constant_">KEYUTIL</span>.<span class="title function_">getKey</span>(pk);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用encrypt方法, 传入明文和公钥实例, 加密后的返回值是16进制字符串.</span></span><br><span class="line"><span class="keyword">var</span> enc = <span class="variable constant_">KJUR</span>.<span class="property">crypto</span>.<span class="property">Cipher</span>.<span class="title function_">encrypt</span>(src,pub);</span><br><span class="line"><span class="comment">// console.log(enc);</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果为了方便放在URL上, 建议使用hextob64u(enc)将其转为Base64编码.（它会将+替换成-,/替换成_,去掉尾部补全的=）</span></span><br><span class="line"><span class="comment">// console.log(hextob64(enc));</span></span><br></pre></td></tr></table></figure>
-<h2 id="RSA解密">RSA解密</h2>
-<p><img src="rsa-aes-3.png" alt=""><br>
-RSA的解密同样可以使用一个通式来表达：</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>明文</mtext><mo>=</mo><mtext>密</mtext><msup><mtext>文</mtext><mi>D</mi></msup><mi>m</mi><mi>o</mi><mi>d</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">明文 = 密文^DmodN
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">明文</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8913em;"></span><span class="mord cjk_fallback">密</span><span class="mord"><span class="mord cjk_fallback">文</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span></span></span></span></span></span></span></span><span class="mord mathnormal">m</span><span class="mord mathnormal">o</span><span class="mord mathnormal">d</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span></span></p>
-<p>D和N的组合就是私钥：</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>私钥</mtext><mo>=</mo><mo stretchy="false">(</mo><mi>D</mi><mo separator="true">,</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">私钥 = (D,N)
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">私钥</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span></span></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"> <span class="comment">// 私钥</span></span><br><span class="line"> <span class="keyword">let</span> priK = <span class="string">&quot;-----BEGIN PRIVATE KEY-----\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAPddJ3PUyfNrMEQ3\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;ko59PHQjJUlnnBvnuKysK4cOGdhfC2Z2FBqWAgjR+jN54WkykC+WeYcLWSlbtdUa\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;9mcvHdtZsIRt/6kxJbiSZC4j7lzFFQlsKXux1o4MGsg2AREc8gJULXwAktOERUwf\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;KO5HomfjNCbJg1tF5KS1j8GsVO8xAgMBAAECgYEA6eG1JMrj63jEmStmMb1txG1a\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;mu4Q5z2QGgtr2HVXsIIlGEq6tWxyHf7TL4qkuz9onuYKn8n2Eqm44fZtVaBx+5ES\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;zRpIvlTvaxmVu0HZ1hYAzUw1XyRnXNMKpL5tT4GCjm8+QGPzlGxgXI1sNg8r9Jaw\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;9zRUYeA6LQR9RIMkHWUCQQD8QojjVoGjtiunoh/N8iplhUszZIavAEvmDIE+kVy+\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;pA7hvlukLw6JMc7cfTcnHyxDo9iHVIzrWlTuKRq9KWVLAkEA+wgJS2sgtldnCVn6\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;tJKFVwsHrWhMIU29msPPbNuWUD23BcKE/vehIyFu1ahNA/TiM40PEnzprQ5JfPxU\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;16S78wJANTfMLTnYy7Lo7sqTLx2BuD0wqjzw9QZ4/KVytsJv8IAn65P/PVn4FRV+\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;8KEx+3zmF7b/PT2nJRe/hycAzxtmlQJBAMrFwQxEqpXfoAEzx4lY2ZBn/nmaR/SW\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;4VNEXCbocVC7qT1j1R5HVMgV13uKiTtq8dUGWmhqsi7x3XayNK5ECPUCQQDZaAN6\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;tvIHApz9OLsXSw0jZirQ6KEYdharXbIVDy1W1sVE3lzLbqLdFp1bxAHQIvsYS5PM\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;A9veSJh372RLJKkj\n&quot;</span> +</span><br><span class="line">     <span class="string">&quot;-----END PRIVATE KEY-----&quot;</span>;   </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 解密</span></span><br><span class="line"><span class="comment">// 读取解析pem格式的私钥, 生成秘钥实例 (RSAKey) </span></span><br><span class="line"> <span class="keyword">var</span> prv = <span class="variable constant_">KEYUTIL</span>.<span class="title function_">getKey</span>(priK);</span><br><span class="line"> </span><br><span class="line"> <span class="comment">// 调用encrypt方法, 传入密文和私钥实例进行解密</span></span><br><span class="line"> <span class="keyword">var</span> dec = <span class="variable constant_">KJUR</span>.<span class="property">crypto</span>.<span class="property">Cipher</span>.<span class="title function_">decrypt</span>(enc,prv);</span><br><span class="line"> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;jsrsasign decrypt: &quot;</span>+dec);</span><br></pre></td></tr></table></figure>
-<h2 id="RSA签名">RSA签名</h2>
-<p><img src="rsa-aes-4.png" alt=""><br>
-RSA生成签名的过程可用下列公式来表述：</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>签名</mtext><mo>=</mo><mtext>（</mtext><mi>H</mi><mi>a</mi><mi>s</mi><mi>h</mi><mtext>（明文）</mtext><msup><mtext>）</mtext><mi>D</mi></msup><mi>m</mi><mi>o</mi><mi>d</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">签名 = （Hash（明文））^D mod N
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">签名</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8913em;"></span><span class="mord cjk_fallback">（</span><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">h</span><span class="mord cjk_fallback">（明文）</span><span class="mord"><span class="mord cjk_fallback">）</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span></span></span></span></span></span></span></span><span class="mord mathnormal">m</span><span class="mord mathnormal">o</span><span class="mord mathnormal">d</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span></span></p>
-<blockquote>
-<p>Hash函数（摘要算法）：<a href="https://cloud.tencent.com/developer/article/1584742">https://cloud.tencent.com/developer/article/1584742</a></p>
-</blockquote>
-<p align = "center">    
-<img  src="rsa-aes-5.png" width="600" />
-</p>
-常用**jsrsasign.js库**实现数字签名过程：
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 签名步骤: 先建立 key 对象, 构建 signature 实例, 传入 key 初始化 -&gt; 签名</span></span><br><span class="line"><span class="keyword">var</span> key = <span class="variable constant_">KEYUTIL</span>.<span class="title function_">getKey</span>(priK);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(key);</span><br><span class="line"><span class="comment">// 创建 Signature 对象，指定Hash算法</span></span><br><span class="line"><span class="keyword">let</span> signature=<span class="keyword">new</span> <span class="variable constant_">KJUR</span>.<span class="property">crypto</span>.<span class="title class_">Signature</span>(&#123;<span class="attr">alg</span>:<span class="string">&quot;SHA1withRSA&quot;</span>&#125;);</span><br><span class="line"><span class="comment">// 传入key实例, 初始化signature实例</span></span><br><span class="line">signature.<span class="title function_">init</span>(key);</span><br><span class="line"><span class="comment">// 传入待签明文</span></span><br><span class="line">signature.<span class="title function_">updateString</span>(src);</span><br><span class="line"><span class="comment">// 签名, 得到16进制字符结果</span></span><br><span class="line"><span class="keyword">let</span> a = signature.<span class="title function_">sign</span>();</span><br><span class="line"><span class="comment">// 如果为了方便放在URL上, 将其转为常用的Base64编码.</span></span><br><span class="line"><span class="keyword">let</span> sign = <span class="title function_">hextob64</span>(a);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(sign);</span><br></pre></td></tr></table></figure>
-## RSA验签
-![](rsa-aes-6.png)
-RSA的签名验证过程可用下列公式来表述：
-$$摘要 = 签名 ^E mod N$$
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 验签</span></span><br><span class="line"><span class="comment">// !要重新new 一个Signature, 否则, 取摘要和签名时取得摘要不一样, 导致验签误报失败(原因不明)!</span></span><br><span class="line"><span class="keyword">let</span> signatureVf = <span class="keyword">new</span> <span class="variable constant_">KJUR</span>.<span class="property">crypto</span>.<span class="title class_">Signature</span>(&#123;<span class="attr">alg</span>:<span class="string">&quot;SHA1withRSA&quot;</span>,<span class="attr">prvkeypem</span>:pk&#125;);</span><br><span class="line">signatureVf.<span class="title function_">updateString</span>(src);</span><br><span class="line"><span class="comment">// !接受的参数是16进制字符串!</span></span><br><span class="line"><span class="keyword">let</span> b = signatureVf.<span class="title function_">verify</span>(<span class="title function_">b64tohex</span>(sign));</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;jsrsasign verify: &quot;</span>+b);</span><br></pre></td></tr></table></figure>
-<h1>AES算法</h1>
-<p><img src="rsa-aes-7.png" alt=""></p>
-<blockquote>
-<p>参考：<br>
-密码学——AES/DES加密算法原理介绍 - 枫のBlog<br>
-<a href="https://www.cnblogs.com/starwolf/p/3365834.html">https://www.cnblogs.com/starwolf/p/3365834.html</a></p>
-</blockquote>
-<h2 id="加密标准-模式">加密标准 &amp; 模式</h2>
-<p>在AES标准规范中，分组长度只能是128位，也就是说，每个分组为16个字节（每个字节8位）。密钥的长度可以使用128位、192位或256位，如果数据块及密钥长度不足时会补齐。密钥的长度不同，推荐加密轮数也不同，如下表所示：</p>
-<table>
-<thead>
-<tr>
-<th>AES</th>
-<th>密钥长度（32位比特字）</th>
-<th>分组长度(32位比特字)</th>
-<th>加密轮数</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>AES-128</td>
-<td>4</td>
-<td>4</td>
-<td>10</td>
-</tr>
-<tr>
-<td>AES-192</td>
-<td>6</td>
-<td>4</td>
-<td>12</td>
-</tr>
-<tr>
-<td>AES-256</td>
-<td>8</td>
-<td>4</td>
-<td>14</td>
-</tr>
-</tbody>
-</table>
-<p>AES加密模式：</p>
-<table>
-<thead>
-<tr>
-<th>AES加密模式</th>
-<th>特点</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>电码本模式（Electronic Codebook Book (ECB)）</td>
-<td>将整个明文分成若干段相同的小段，然后对每一小段进行加密。</td>
-</tr>
-<tr>
-<td>密码分组链接模式（Cipher Block Chaining (CBC)）</td>
-<td>先将明文切分成若干小段，然后每一小段与初始块或者上一段的密文段进行异或运算后，再与密钥进行加密。</td>
-</tr>
-<tr>
-<td>计算器模式（Counter (CTR)）</td>
-<td>计算器模式不常见，在CTR模式中，有一个自增的算子，这个算子用密钥加密之后的输出和明文异或的结果得到密文，相当于一次一密。这种加密方式简单快速，安全可靠，而且可以并行加密，但是在计算器不能维持很长的情况下，密钥只能使用一次。</td>
-</tr>
-<tr>
-<td>密码反馈模式（Cipher FeedBack (CFB)）</td>
-<td>这种模式较复杂</td>
-</tr>
-<tr>
-<td>输出反馈模式（Output FeedBack (OFB)）</td>
-<td>这种模式较复杂</td>
-</tr>
-</tbody>
-</table>
-<h2 id="加解密流程">加解密流程</h2>
-<p>AES加解密主要有以下几步操作，完整的加解密流程是通过循环以下步骤来完成的，具体如下图表示</p>
+    <title>rust学习笔记2-函数</title>
+    <url>/2025/02/10/rust-2/</url>
+    <content><![CDATA[<p><img src="rust2-1.png" alt=""></p>
+<h2 id="函数定义">函数定义</h2>
 <ul>
-<li>轮密钥加</li>
-<li>字节代换</li>
-<li>行位移</li>
-<li>列混合</li>
+<li>fn关键字声明函数</li>
+<li>函数名使用下划线命名法（蛇形命名法，snake_case）：字母小写，下划线分隔单词</li>
 </ul>
-<blockquote>
-<p>具体步骤分析参考：<a href="https://goodapple.top/archives/162">https://goodapple.top/archives/162</a></p>
-</blockquote>
-<p><img src="rsa-aes-8.png" alt=""></p>
-<h2 id="AES加密">AES加密</h2>
-<p><img src="rsa-aes-9.png" alt=""><br>
-设AES加密函数为E，则 C = E(K, P),其中P为明文，K为密钥，C为密文。也就是说，把明文P和密钥K作为加密函数的参数输入，则加密函数E会输出密文C</p>
-<h2 id="AES解密">AES解密</h2>
-<p><img src="rsa-aes-10.png" alt=""><br>
-设AES解密函数为D，则 P = D(K, C),其中C为密文，K为密钥，P为明文。也就是说，把密文C和密钥K作为解密函数的参数输入，则解密函数会输出明文P<br>
-常用<strong>crypto-js库</strong>实现AES加解密过程：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">CryptoJS</span> <span class="keyword">from</span> <span class="string">&#x27;crypto-js&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> key = <span class="string">&#x27;aaaabbbbccccdddd&#x27;</span><span class="comment">//秘钥</span></span><br><span class="line"><span class="keyword">const</span> iv = <span class="string">&#x27;1234567887654321&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 加密</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Encrypt</span> (<span class="params">text</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">CryptoJS</span>.<span class="property">AES</span>.<span class="title function_">encrypt</span>(text, <span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Utf8</span>.<span class="title function_">parse</span>(key), &#123;</span><br><span class="line">    <span class="attr">iv</span>: <span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Utf8</span>.<span class="title function_">parse</span>(iv),<span class="comment">//初始变量</span></span><br><span class="line">    <span class="attr">mode</span>: <span class="title class_">CryptoJS</span>.<span class="property">mode</span>.<span class="property">CBC</span>,<span class="comment">//加密模式</span></span><br><span class="line">    <span class="attr">padding</span>: <span class="title class_">CryptoJS</span>.<span class="property">pad</span>.<span class="property">Pkcs7</span><span class="comment">//填充方式</span></span><br><span class="line">  &#125;).<span class="title function_">toString</span>()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解密</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Decrypt</span> (<span class="params">text</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> decrypted = <span class="title class_">CryptoJS</span>.<span class="property">AES</span>.<span class="title function_">decrypt</span>(text, <span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Utf8</span>.<span class="title function_">parse</span>(key), &#123;</span><br><span class="line">    <span class="attr">iv</span>: <span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Utf8</span>.<span class="title function_">parse</span>(iv),</span><br><span class="line">    <span class="attr">mode</span>: <span class="title class_">CryptoJS</span>.<span class="property">mode</span>.<span class="property">CBC</span>,</span><br><span class="line">    <span class="attr">padding</span>: <span class="title class_">CryptoJS</span>.<span class="property">pad</span>.<span class="property">Pkcs7</span></span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">return</span> decrypted.<span class="title function_">toString</span>(<span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Utf8</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="title class_">Encrypt</span>,</span><br><span class="line">  <span class="title class_">Decrypt</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"><span class="keyword">let</span> text = <span class="variable constant_">AES</span>.<span class="title class_">Encrypt</span>(<span class="string">&#x27;123&#x27;</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(text)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable constant_">AES</span>.<span class="title class_">Decrypt</span>(text))</span><br></pre></td></tr></table></figure>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> &lt;函数名&gt;(&lt;参数: 类型&gt;) &lt;函数体&gt;</span><br></pre></td></tr></table></figure>
+<p>示例：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">add</span>(x: <span class="type">i32</span>, y: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">    x + y  <span class="comment">// 无分号，作为返回值</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">greet</span>(name: &amp;<span class="type">str</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;你好, &#123;&#125;!&quot;</span>, name);  <span class="comment">// 无返回值，等同于返回 ()</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="函数参数">函数参数</h2>
+<ul>
+<li>必须声明每个参数的类型</li>
+<li>参数数量是固定的</li>
+</ul>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">print_sum</span>(a: <span class="type">i32</span>, b: <span class="type">i32</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;和是: &#123;&#125;&quot;</span>, a + b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="函数体的语句和表达式">函数体的语句和表达式</h2>
+<ul>
+<li>语句：执行操作但不返回值，<strong>语句末尾有<code>;</code></strong></li>
+<li>表达式：计算并返回值，<strong>表达式末尾没有<code>;</code></strong></li>
+</ul>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">expression_example</span>() <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">y</span> = &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">x</span> = <span class="number">3</span>; <span class="comment">// 语句</span></span><br><span class="line">        x + <span class="number">1</span>  <span class="comment">// 表达式，返回 4</span></span><br><span class="line">    &#125;;</span><br><span class="line">    y + <span class="number">2</span> <span class="comment">// 表达式，返回 6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="函数返回值">函数返回值</h2>
+<ul>
+<li>使用 -&gt; 声明返回类型</li>
+<li>隐式返回最后一个表达式的值</li>
+<li>也可以使用 return 提前返回指定值</li>
+</ul>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">get_square</span>(num: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">    num * num  <span class="comment">// 隐式返回</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">check_number</span>(num: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">bool</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> num &lt; <span class="number">0</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;  <span class="comment">// 提前返回</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="literal">true</span>  <span class="comment">// 隐式返回</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p align = "center">    
 <img  src="nanie.jpg" width="200" />
 </p>
 ]]></content>
       <categories>
-        <category>algorithm</category>
+        <category>rust</category>
       </categories>
       <tags>
-        <tag>algorithm</tag>
+        <tag>rust</tag>
       </tags>
   </entry>
   <entry>
@@ -473,48 +515,6 @@ $$摘要 = 签名 ^E mod N$$
       </tags>
   </entry>
   <entry>
-    <title>rust学习笔记2-函数</title>
-    <url>/2025/02/10/rust-2/</url>
-    <content><![CDATA[<p><img src="rust2-1.png" alt=""></p>
-<h2 id="函数定义">函数定义</h2>
-<ul>
-<li>fn关键字声明函数</li>
-<li>函数名使用下划线命名法（蛇形命名法，snake_case）：字母小写，下划线分隔单词</li>
-</ul>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> &lt;函数名&gt;(&lt;参数: 类型&gt;) &lt;函数体&gt;</span><br></pre></td></tr></table></figure>
-<p>示例：</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">add</span>(x: <span class="type">i32</span>, y: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">    x + y  <span class="comment">// 无分号，作为返回值</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">greet</span>(name: &amp;<span class="type">str</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;你好, &#123;&#125;!&quot;</span>, name);  <span class="comment">// 无返回值，等同于返回 ()</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="函数参数">函数参数</h2>
-<ul>
-<li>必须声明每个参数的类型</li>
-<li>参数数量是固定的</li>
-</ul>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">print_sum</span>(a: <span class="type">i32</span>, b: <span class="type">i32</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;和是: &#123;&#125;&quot;</span>, a + b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="函数体的语句和表达式">函数体的语句和表达式</h2>
-<ul>
-<li>语句：执行操作但不返回值，<strong>语句末尾有<code>;</code></strong></li>
-<li>表达式：计算并返回值，<strong>表达式末尾没有<code>;</code></strong></li>
-</ul>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">expression_example</span>() <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">y</span> = &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">x</span> = <span class="number">3</span>; <span class="comment">// 语句</span></span><br><span class="line">        x + <span class="number">1</span>  <span class="comment">// 表达式，返回 4</span></span><br><span class="line">    &#125;;</span><br><span class="line">    y + <span class="number">2</span> <span class="comment">// 表达式，返回 6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="函数返回值">函数返回值</h2>
-<ul>
-<li>使用 -&gt; 声明返回类型</li>
-<li>隐式返回最后一个表达式的值</li>
-<li>也可以使用 return 提前返回指定值</li>
-</ul>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">get_square</span>(num: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">    num * num  <span class="comment">// 隐式返回</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">check_number</span>(num: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">bool</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> num &lt; <span class="number">0</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;  <span class="comment">// 提前返回</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="literal">true</span>  <span class="comment">// 隐式返回</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p align = "center">    
-<img  src="nanie.jpg" width="200" />
-</p>
-]]></content>
-      <categories>
-        <category>rust</category>
-      </categories>
-      <tags>
-        <tag>rust</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>rust学习笔记3-注释</title>
     <url>/2025/02/11/rust-3/</url>
     <content><![CDATA[<h2 id="普通注释">普通注释</h2>
@@ -544,80 +544,6 @@ $$摘要 = 签名 ^E mod N$$
 <p align = "center">    
 <img  src="nanie.jpg" width="200" />
 </p>
-]]></content>
-      <categories>
-        <category>rust</category>
-      </categories>
-      <tags>
-        <tag>rust</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>rust学习笔记5-所有权</title>
-    <url>/2025/02/12/rust-5/</url>
-    <content><![CDATA[<h2 id="所有权规则">所有权规则</h2>
-<ul>
-<li>每个值都有一个变量，称为其所有者</li>
-<li>每个值同时只能有一个所有者</li>
-<li>当所有者离开作用域时，值将被丢弃</li>
-</ul>
-<h2 id="变量作用域">变量作用域</h2>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line">&#123;                      <span class="comment">// s 在这里无效</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span> = <span class="string">&quot;hello&quot;</span>;   <span class="comment">// s 从这里开始有效</span></span><br><span class="line">    <span class="comment">// 使用 s</span></span><br><span class="line">&#125;                      <span class="comment">// s 作用域结束，s 无效</span></span><br></pre></td></tr></table></figure>
-<h2 id="内存分配和释放">内存分配和释放</h2>
-<h3 id="Stack（栈）数据">Stack（栈）数据</h3>
-<ul>
-<li>固定大小的数据</li>
-<li>编译时大小已知</li>
-<li>例如：整数、浮点数、布尔值、字符等</li>
-</ul>
-<h3 id="Heap（堆）数据">Heap（堆）数据</h3>
-<ul>
-<li>运行时大小可变的数据</li>
-<li>编译时大小未知</li>
-<li>例如：String、Vec、Box等</li>
-</ul>
-<h2 id="String类型详解">String类型详解</h2>
-<h3 id="创建String">创建String</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>); <span class="comment">// 在堆上分配内存</span></span><br></pre></td></tr></table></figure>
-<h3 id="移动（Move）">移动（Move）</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">s2</span> = s1; <span class="comment">// s1 被移动到 s2，s1 不再有效</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 错误示例</span></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, s1); <span class="comment">// 编译错误：s1已被移动</span></span><br></pre></td></tr></table></figure>
-<h3 id="克隆（Clone）">克隆（Clone）</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">s2</span> = s1.<span class="title function_ invoke__">clone</span>(); <span class="comment">// 深度复制数据</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确：s1和s2都有效</span></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;s1 = &#123;&#125;, s2 = &#123;&#125;&quot;</span>, s1, s2);</span><br></pre></td></tr></table></figure>
-<h2 id="所有权与函数">所有权与函数</h2>
-<h3 id="传递值">传递值</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    <span class="title function_ invoke__">takes_ownership</span>(s); <span class="comment">// s的值被移动到函数中</span></span><br><span class="line">    <span class="comment">// s 在这里不再有效</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>;</span><br><span class="line">    <span class="title function_ invoke__">makes_copy</span>(x); <span class="comment">// x是Copy类型，所以仍然可用</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, x); <span class="comment">// 正确</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">takes_ownership</span>(some_string: <span class="type">String</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, some_string);</span><br><span class="line">&#125; <span class="comment">// some_string离开作用域并被丢弃</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">makes_copy</span>(some_integer: <span class="type">i32</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, some_integer);</span><br><span class="line">&#125; <span class="comment">// some_integer离开作用域，无特殊操作</span></span><br></pre></td></tr></table></figure>
-<h3 id="返回值与作用域">返回值与作用域</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s1</span> = <span class="title function_ invoke__">gives_ownership</span>(); <span class="comment">// 获取返回值的所有权</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s2</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s3</span> = <span class="title function_ invoke__">takes_and_gives_back</span>(s2); <span class="comment">// s2被移动到函数中</span></span><br><span class="line">&#125; <span class="comment">// s3离开作用域被丢弃，s2已被移动，s1离开作用域被丢弃</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">gives_ownership</span>() <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">    <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">takes_and_gives_back</span>(a_string: <span class="type">String</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">    a_string</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="Copy-trait">Copy trait</h2>
-<h3 id="实现Copy的类型">实现Copy的类型</h3>
-<ul>
-<li>所有整数类型</li>
-<li>布尔类型</li>
-<li>浮点类型</li>
-<li>字符类型</li>
-<li>元组（当且仅当其包含的类型也都实现了Copy）</li>
-</ul>
-<h3 id="示例">示例</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>;</span><br><span class="line"><span class="keyword">let</span> <span class="variable">y</span> = x; <span class="comment">// x被复制到y，x仍然有效</span></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;x = &#123;&#125;, y = &#123;&#125;&quot;</span>, x, y); <span class="comment">// 正确</span></span><br></pre></td></tr></table></figure>
-<h2 id="引用与借用">引用与借用</h2>
-<h3 id="引用规则">引用规则</h3>
-<ul>
-<li>同一时间只能有一个可变引用</li>
-<li>可以有多个不可变引用</li>
-<li>可变引用和不可变引用不能同时存在</li>
-</ul>
-<h3 id="不可变引用">不可变引用</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">len</span> = <span class="title function_ invoke__">calculate_length</span>(&amp;s1);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#x27;&#123;&#125;&#x27; 的长度是 &#123;&#125;&quot;</span>, s1, len);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">calculate_length</span>(s: &amp;<span class="type">String</span>) <span class="punctuation">-&gt;</span> <span class="type">usize</span> &#123;</span><br><span class="line">    s.<span class="title function_ invoke__">len</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="可变引用">可变引用</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    <span class="title function_ invoke__">change</span>(&amp;<span class="keyword">mut</span> s);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">change</span>(some_string: &amp;<span class="keyword">mut</span> <span class="type">String</span>) &#123;</span><br><span class="line">    some_string.<span class="title function_ invoke__">push_str</span>(<span class="string">&quot;, world&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="悬垂引用（Dangling-References）">悬垂引用（Dangling References）</h2>
-<p>Rust 编译器确保引用永远不会变成悬垂引用：</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">reference_to_nothing</span> = <span class="title function_ invoke__">dangle</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">dangle</span>() <span class="punctuation">-&gt;</span> &amp;<span class="type">String</span> &#123; <span class="comment">// 编译错误</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    &amp;s <span class="comment">// s离开作用域后被释放，返回其引用将导致悬垂引用</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="切片（Slice）">切片（Slice）</h2>
-<h3 id="字符串切片">字符串切片</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello world&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">hello</span> = &amp;s[<span class="number">0</span>..<span class="number">5</span>];  <span class="comment">// &quot;hello&quot;</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">world</span> = &amp;s[<span class="number">6</span>..<span class="number">11</span>]; <span class="comment">// &quot;world&quot;</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">whole</span> = &amp;s[..];    <span class="comment">// 整个字符串的切片</span></span><br></pre></td></tr></table></figure>
-<h3 id="其他切片">其他切片</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">a</span> = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br><span class="line"><span class="keyword">let</span> <span class="variable">slice</span> = &amp;a[<span class="number">1</span>..<span class="number">3</span>]; <span class="comment">// [2, 3]</span></span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>rust</category>
@@ -838,6 +764,80 @@ MCP 协议是开放的，我们可以根据特定业务所需的非标准通信�
       </categories>
       <tags>
         <tag>ai</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>rust学习笔记5-所有权</title>
+    <url>/2025/02/12/rust-5/</url>
+    <content><![CDATA[<h2 id="所有权规则">所有权规则</h2>
+<ul>
+<li>每个值都有一个变量，称为其所有者</li>
+<li>每个值同时只能有一个所有者</li>
+<li>当所有者离开作用域时，值将被丢弃</li>
+</ul>
+<h2 id="变量作用域">变量作用域</h2>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line">&#123;                      <span class="comment">// s 在这里无效</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span> = <span class="string">&quot;hello&quot;</span>;   <span class="comment">// s 从这里开始有效</span></span><br><span class="line">    <span class="comment">// 使用 s</span></span><br><span class="line">&#125;                      <span class="comment">// s 作用域结束，s 无效</span></span><br></pre></td></tr></table></figure>
+<h2 id="内存分配和释放">内存分配和释放</h2>
+<h3 id="Stack（栈）数据">Stack（栈）数据</h3>
+<ul>
+<li>固定大小的数据</li>
+<li>编译时大小已知</li>
+<li>例如：整数、浮点数、布尔值、字符等</li>
+</ul>
+<h3 id="Heap（堆）数据">Heap（堆）数据</h3>
+<ul>
+<li>运行时大小可变的数据</li>
+<li>编译时大小未知</li>
+<li>例如：String、Vec、Box等</li>
+</ul>
+<h2 id="String类型详解">String类型详解</h2>
+<h3 id="创建String">创建String</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>); <span class="comment">// 在堆上分配内存</span></span><br></pre></td></tr></table></figure>
+<h3 id="移动（Move）">移动（Move）</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">s2</span> = s1; <span class="comment">// s1 被移动到 s2，s1 不再有效</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 错误示例</span></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, s1); <span class="comment">// 编译错误：s1已被移动</span></span><br></pre></td></tr></table></figure>
+<h3 id="克隆（Clone）">克隆（Clone）</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">s2</span> = s1.<span class="title function_ invoke__">clone</span>(); <span class="comment">// 深度复制数据</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确：s1和s2都有效</span></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;s1 = &#123;&#125;, s2 = &#123;&#125;&quot;</span>, s1, s2);</span><br></pre></td></tr></table></figure>
+<h2 id="所有权与函数">所有权与函数</h2>
+<h3 id="传递值">传递值</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    <span class="title function_ invoke__">takes_ownership</span>(s); <span class="comment">// s的值被移动到函数中</span></span><br><span class="line">    <span class="comment">// s 在这里不再有效</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>;</span><br><span class="line">    <span class="title function_ invoke__">makes_copy</span>(x); <span class="comment">// x是Copy类型，所以仍然可用</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, x); <span class="comment">// 正确</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">takes_ownership</span>(some_string: <span class="type">String</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, some_string);</span><br><span class="line">&#125; <span class="comment">// some_string离开作用域并被丢弃</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">makes_copy</span>(some_integer: <span class="type">i32</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, some_integer);</span><br><span class="line">&#125; <span class="comment">// some_integer离开作用域，无特殊操作</span></span><br></pre></td></tr></table></figure>
+<h3 id="返回值与作用域">返回值与作用域</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s1</span> = <span class="title function_ invoke__">gives_ownership</span>(); <span class="comment">// 获取返回值的所有权</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s2</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s3</span> = <span class="title function_ invoke__">takes_and_gives_back</span>(s2); <span class="comment">// s2被移动到函数中</span></span><br><span class="line">&#125; <span class="comment">// s3离开作用域被丢弃，s2已被移动，s1离开作用域被丢弃</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">gives_ownership</span>() <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">    <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">takes_and_gives_back</span>(a_string: <span class="type">String</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">    a_string</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Copy-trait">Copy trait</h2>
+<h3 id="实现Copy的类型">实现Copy的类型</h3>
+<ul>
+<li>所有整数类型</li>
+<li>布尔类型</li>
+<li>浮点类型</li>
+<li>字符类型</li>
+<li>元组（当且仅当其包含的类型也都实现了Copy）</li>
+</ul>
+<h3 id="示例">示例</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>;</span><br><span class="line"><span class="keyword">let</span> <span class="variable">y</span> = x; <span class="comment">// x被复制到y，x仍然有效</span></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;x = &#123;&#125;, y = &#123;&#125;&quot;</span>, x, y); <span class="comment">// 正确</span></span><br></pre></td></tr></table></figure>
+<h2 id="引用与借用">引用与借用</h2>
+<h3 id="引用规则">引用规则</h3>
+<ul>
+<li>同一时间只能有一个可变引用</li>
+<li>可以有多个不可变引用</li>
+<li>可变引用和不可变引用不能同时存在</li>
+</ul>
+<h3 id="不可变引用">不可变引用</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">len</span> = <span class="title function_ invoke__">calculate_length</span>(&amp;s1);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#x27;&#123;&#125;&#x27; 的长度是 &#123;&#125;&quot;</span>, s1, len);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">calculate_length</span>(s: &amp;<span class="type">String</span>) <span class="punctuation">-&gt;</span> <span class="type">usize</span> &#123;</span><br><span class="line">    s.<span class="title function_ invoke__">len</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="可变引用">可变引用</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    <span class="title function_ invoke__">change</span>(&amp;<span class="keyword">mut</span> s);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">change</span>(some_string: &amp;<span class="keyword">mut</span> <span class="type">String</span>) &#123;</span><br><span class="line">    some_string.<span class="title function_ invoke__">push_str</span>(<span class="string">&quot;, world&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="悬垂引用（Dangling-References）">悬垂引用（Dangling References）</h2>
+<p>Rust 编译器确保引用永远不会变成悬垂引用：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">reference_to_nothing</span> = <span class="title function_ invoke__">dangle</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">dangle</span>() <span class="punctuation">-&gt;</span> &amp;<span class="type">String</span> &#123; <span class="comment">// 编译错误</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    &amp;s <span class="comment">// s离开作用域后被释放，返回其引用将导致悬垂引用</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="切片（Slice）">切片（Slice）</h2>
+<h3 id="字符串切片">字符串切片</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello world&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">hello</span> = &amp;s[<span class="number">0</span>..<span class="number">5</span>];  <span class="comment">// &quot;hello&quot;</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">world</span> = &amp;s[<span class="number">6</span>..<span class="number">11</span>]; <span class="comment">// &quot;world&quot;</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">whole</span> = &amp;s[..];    <span class="comment">// 整个字符串的切片</span></span><br></pre></td></tr></table></figure>
+<h3 id="其他切片">其他切片</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">a</span> = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br><span class="line"><span class="keyword">let</span> <span class="variable">slice</span> = &amp;a[<span class="number">1</span>..<span class="number">3</span>]; <span class="comment">// [2, 3]</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>rust</category>
+      </categories>
+      <tags>
+        <tag>rust</tag>
       </tags>
   </entry>
 </search>
