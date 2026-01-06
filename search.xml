@@ -56,115 +56,6 @@
       </tags>
   </entry>
   <entry>
-    <title>git rebase 与 merge区别</title>
-    <url>/2025/06/25/rebase-merge/</url>
-    <content><![CDATA[<h2 id="一图概览">一图概览</h2>
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>git merge</th>
-<th>git rebase</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>操作本质</td>
-<td>创建一个新的合并提交</td>
-<td>把你的提交“挪到”目标分支之后</td>
-</tr>
-<tr>
-<td>提交历史</td>
-<td>保留分支分叉（图像呈现树状）</td>
-<td>线性历史（图像像一条直线）</td>
-</tr>
-<tr>
-<td>是否修改提交历史</td>
-<td>否</td>
-<td>是（修改提交 ID）</td>
-</tr>
-<tr>
-<td>是否需要强推</td>
-<td>通常不需要</td>
-<td>是（如果之前 push 过，rebase 后需 -f）</td>
-</tr>
-<tr>
-<td>冲突处理方式</td>
-<td>一次性解决合并冲突</td>
-<td>每一个提交可能触发冲突，逐个解决</td>
-</tr>
-<tr>
-<td>合并记录</td>
-<td>有合并 commit（如 “Merge branch…”）</td>
-<td>没有合并记录，提交像是直接在主干上产生的</td>
-</tr>
-</tbody>
-</table>
-<h2 id="示例对比">示例对比</h2>
-<h3 id="1-git-merge-的效果">1. git merge 的效果</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout main</span><br><span class="line">git merge feature</span><br></pre></td></tr></table></figure>
-<p>图示：<br>
-原始：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">A---B---C  (main)</span><br><span class="line">     \</span><br><span class="line">      D---E  (feature)</span><br></pre></td></tr></table></figure>
-<p>merge 后：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">A---B---C--------M  (main)</span><br><span class="line">     \        /</span><br><span class="line">      D------E</span><br></pre></td></tr></table></figure>
-<p>多了一个 M 合并提交。</p>
-<h3 id="2-git-rebase-的效果">2. git rebase 的效果</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout feature</span><br><span class="line">git rebase main</span><br></pre></td></tr></table></figure>
-<p>图示：</p>
-<p>原始：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">A---B---C  (main)</span><br><span class="line">     \</span><br><span class="line">      D---E  (feature)</span><br></pre></td></tr></table></figure>
-<p>rebase 后：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">A---B---C---D&#x27;---E&#x27;  (feature)</span><br></pre></td></tr></table></figure>
-<p>D 和 E 被“摘下来”并重放到 C 之后。</p>
-<h2 id="使用建议">使用建议</h2>
-<table>
-<thead>
-<tr>
-<th>场景</th>
-<th>推荐操作</th>
-<th>原因</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>个人开发，准备提交合并请求</td>
-<td>rebase</td>
-<td>保持提交记录整洁，便于评审</td>
-</tr>
-<tr>
-<td>多人协作，主分支合并 feature 分支</td>
-<td>merge</td>
-<td>不改历史，不影响他人 pull 的内容</td>
-</tr>
-<tr>
-<td>不关心历史美观，只想快速合并</td>
-<td>merge</td>
-<td>简单直接</td>
-</tr>
-<tr>
-<td>想清晰回溯每个功能点的开发过程</td>
-<td>merge</td>
-<td>每个合并点都是功能点</td>
-</tr>
-<tr>
-<td>想让历史看起来像一次性开发完成</td>
-<td>rebase</td>
-<td>可线性回顾整个演进过程</td>
-</tr>
-</tbody>
-</table>
-<h2 id="快速记忆">快速记忆</h2>
-<p>merge 是把别人拉进来；rebase 是把自己放到别人后面。</p>
-]]></content>
-      <categories>
-        <category>rust</category>
-      </categories>
-      <tags>
-        <tag>rust</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>px、dp理解</title>
     <url>/2025/05/13/px-dp/</url>
     <content><![CDATA[<p>最近使用<code>px</code>、<code>dp</code>有点感悟，记录一下~</p>
@@ -547,6 +438,115 @@ $$摘要 = 签名 ^E mod N$$
       </tags>
   </entry>
   <entry>
+    <title>git rebase 与 merge区别</title>
+    <url>/2025/06/25/rebase-merge/</url>
+    <content><![CDATA[<h2 id="一图概览">一图概览</h2>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>git merge</th>
+<th>git rebase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>操作本质</td>
+<td>创建一个新的合并提交</td>
+<td>把你的提交“挪到”目标分支之后</td>
+</tr>
+<tr>
+<td>提交历史</td>
+<td>保留分支分叉（图像呈现树状）</td>
+<td>线性历史（图像像一条直线）</td>
+</tr>
+<tr>
+<td>是否修改提交历史</td>
+<td>否</td>
+<td>是（修改提交 ID）</td>
+</tr>
+<tr>
+<td>是否需要强推</td>
+<td>通常不需要</td>
+<td>是（如果之前 push 过，rebase 后需 -f）</td>
+</tr>
+<tr>
+<td>冲突处理方式</td>
+<td>一次性解决合并冲突</td>
+<td>每一个提交可能触发冲突，逐个解决</td>
+</tr>
+<tr>
+<td>合并记录</td>
+<td>有合并 commit（如 “Merge branch…”）</td>
+<td>没有合并记录，提交像是直接在主干上产生的</td>
+</tr>
+</tbody>
+</table>
+<h2 id="示例对比">示例对比</h2>
+<h3 id="1-git-merge-的效果">1. git merge 的效果</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout main</span><br><span class="line">git merge feature</span><br></pre></td></tr></table></figure>
+<p>图示：<br>
+原始：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">A---B---C  (main)</span><br><span class="line">     \</span><br><span class="line">      D---E  (feature)</span><br></pre></td></tr></table></figure>
+<p>merge 后：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">A---B---C--------M  (main)</span><br><span class="line">     \        /</span><br><span class="line">      D------E</span><br></pre></td></tr></table></figure>
+<p>多了一个 M 合并提交。</p>
+<h3 id="2-git-rebase-的效果">2. git rebase 的效果</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout feature</span><br><span class="line">git rebase main</span><br></pre></td></tr></table></figure>
+<p>图示：</p>
+<p>原始：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">A---B---C  (main)</span><br><span class="line">     \</span><br><span class="line">      D---E  (feature)</span><br></pre></td></tr></table></figure>
+<p>rebase 后：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">A---B---C---D&#x27;---E&#x27;  (feature)</span><br></pre></td></tr></table></figure>
+<p>D 和 E 被“摘下来”并重放到 C 之后。</p>
+<h2 id="使用建议">使用建议</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐操作</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>个人开发，准备提交合并请求</td>
+<td>rebase</td>
+<td>保持提交记录整洁，便于评审</td>
+</tr>
+<tr>
+<td>多人协作，主分支合并 feature 分支</td>
+<td>merge</td>
+<td>不改历史，不影响他人 pull 的内容</td>
+</tr>
+<tr>
+<td>不关心历史美观，只想快速合并</td>
+<td>merge</td>
+<td>简单直接</td>
+</tr>
+<tr>
+<td>想清晰回溯每个功能点的开发过程</td>
+<td>merge</td>
+<td>每个合并点都是功能点</td>
+</tr>
+<tr>
+<td>想让历史看起来像一次性开发完成</td>
+<td>rebase</td>
+<td>可线性回顾整个演进过程</td>
+</tr>
+</tbody>
+</table>
+<h2 id="快速记忆">快速记忆</h2>
+<p>merge 是把别人拉进来；rebase 是把自己放到别人后面。</p>
+]]></content>
+      <categories>
+        <category>rust</category>
+      </categories>
+      <tags>
+        <tag>rust</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>rust学习笔记1-变量与数据类型</title>
     <url>/2025/02/10/rust-1/</url>
     <content><![CDATA[<p><img src="rust1-1.png" alt=""></p>
@@ -649,44 +649,6 @@ $$摘要 = 签名 ^E mod N$$
       </tags>
   </entry>
   <entry>
-    <title>rust学习笔记3-注释</title>
-    <url>/2025/02/11/rust-3/</url>
-    <content><![CDATA[<h2 id="普通注释">普通注释</h2>
-<h3 id="行注释">行注释</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 这是一个行注释</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>; <span class="comment">// 这是一个行尾注释</span></span><br></pre></td></tr></table></figure>
-<h3 id="块注释">块注释</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 这是一个块注释</span></span><br><span class="line"><span class="comment">   可以跨越多行 */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 块注释可以</span></span><br><span class="line"><span class="comment">   <span class="comment">/* 嵌套使用 */</span></span></span><br><span class="line"><span class="comment">   非常方便 */</span></span><br></pre></td></tr></table></figure>
-<h2 id="文档注释">文档注释</h2>
-<h3 id="外部文档注释（-）">外部文档注释（///）</h3>
-<p>用于函数、结构体、方法等项的文档：</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">/// 计算两个数字的和</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # 参数</span></span><br><span class="line"><span class="comment">/// * `a` - 第一个数字</span></span><br><span class="line"><span class="comment">/// * `b` - 第二个数字</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # 示例</span></span><br><span class="line"><span class="comment">/// ```</span></span><br><span class="line"><span class="comment">/// let result = add(1, 2);</span></span><br><span class="line"><span class="comment">/// assert_eq!(result, 3);</span></span><br><span class="line"><span class="comment">/// ```</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">add</span>(a: <span class="type">i32</span>, b: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">    a + b</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/// 表示一个矩形的结构体</span></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">Rectangle</span> &#123;</span><br><span class="line">    width: <span class="type">u32</span>,</span><br><span class="line">    height: <span class="type">u32</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="内部文档注释（-）">内部文档注释（//!）</h3>
-<p>用于模块或包的整体文档：</p>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">//! # 数学计算模块</span></span><br><span class="line"><span class="comment">//! </span></span><br><span class="line"><span class="comment">//! 这个模块提供了基本的数学计算功能。</span></span><br><span class="line"><span class="comment">//! </span></span><br><span class="line"><span class="comment">//! ## 主要功能：</span></span><br><span class="line"><span class="comment">//! - 基础运算</span></span><br><span class="line"><span class="comment">//! - 几何计算</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">mod</span> math &#123;</span><br><span class="line">    <span class="comment">// 模块内容</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="文档注释格式">文档注释格式</h2>
-<h3 id="常用章节标记">常用章节标记</h3>
-<ul>
-<li><code># Examples</code> - 示例代码</li>
-<li><code># Panics</code> - 可能的 panic 情况</li>
-<li><code># Errors</code> - 错误处理说明</li>
-<li><code># Safety</code> - 安全性说明</li>
-<li><code># Arguments</code> - 参数说明</li>
-<li><code># Returns</code> - 返回值说明</li>
-</ul>
-<h3 id="示例">示例</h3>
-<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">/// 将字符串转换为大写</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # Arguments</span></span><br><span class="line"><span class="comment">/// * `text` - 要转换的字符串</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # Returns</span></span><br><span class="line"><span class="comment">/// 转换后的大写字符串</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # Examples</span></span><br><span class="line"><span class="comment">/// ```</span></span><br><span class="line"><span class="comment">/// let upper = to_uppercase(&quot;hello&quot;);</span></span><br><span class="line"><span class="comment">/// assert_eq!(upper, &quot;HELLO&quot;);</span></span><br><span class="line"><span class="comment">/// ```</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # Errors</span></span><br><span class="line"><span class="comment">/// 如果输入不是有效的 UTF-8 字符串，将返回错误</span></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">to_uppercase</span>(text: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">    text.<span class="title function_ invoke__">to_uppercase</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p align = "center">    
-<img  src="nanie.jpg" width="200" />
-</p>
-]]></content>
-      <categories>
-        <category>rust</category>
-      </categories>
-      <tags>
-        <tag>rust</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>rust学习笔记2-函数</title>
     <url>/2025/02/10/rust-2/</url>
     <content><![CDATA[<p><img src="rust2-1.png" alt=""></p>
@@ -755,6 +717,44 @@ $$摘要 = 签名 ^E mod N$$
 <figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">number</span> = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> number != <span class="number">0</span> &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;!&quot;</span>, number); <span class="comment">// 3! 2! 1!</span></span><br><span class="line">    number -= <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h3 id="for-循环">for 循环</h3>
 <figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 遍历范围</span></span><br><span class="line"><span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> <span class="number">1</span>..=<span class="number">5</span> &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;值是: &#123;&#125;&quot;</span>, i); <span class="comment">// 值是: 1 值是: 2 值是: 3 值是: 4 值是: 5</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 遍历集合</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">arr</span> = [<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>, <span class="number">50</span>];</span><br><span class="line"><span class="keyword">for</span> <span class="variable">element</span> <span class="keyword">in</span> arr.<span class="title function_ invoke__">iter</span>() &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;值是: &#123;&#125;&quot;</span>, element); <span class="comment">// 值是: 10 值是: 20 值是: 30 值是: 40 值是: 50</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p align = "center">    
+<img  src="nanie.jpg" width="200" />
+</p>
+]]></content>
+      <categories>
+        <category>rust</category>
+      </categories>
+      <tags>
+        <tag>rust</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>rust学习笔记3-注释</title>
+    <url>/2025/02/11/rust-3/</url>
+    <content><![CDATA[<h2 id="普通注释">普通注释</h2>
+<h3 id="行注释">行注释</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 这是一个行注释</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>; <span class="comment">// 这是一个行尾注释</span></span><br></pre></td></tr></table></figure>
+<h3 id="块注释">块注释</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 这是一个块注释</span></span><br><span class="line"><span class="comment">   可以跨越多行 */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 块注释可以</span></span><br><span class="line"><span class="comment">   <span class="comment">/* 嵌套使用 */</span></span></span><br><span class="line"><span class="comment">   非常方便 */</span></span><br></pre></td></tr></table></figure>
+<h2 id="文档注释">文档注释</h2>
+<h3 id="外部文档注释（-）">外部文档注释（///）</h3>
+<p>用于函数、结构体、方法等项的文档：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">/// 计算两个数字的和</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # 参数</span></span><br><span class="line"><span class="comment">/// * `a` - 第一个数字</span></span><br><span class="line"><span class="comment">/// * `b` - 第二个数字</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # 示例</span></span><br><span class="line"><span class="comment">/// ```</span></span><br><span class="line"><span class="comment">/// let result = add(1, 2);</span></span><br><span class="line"><span class="comment">/// assert_eq!(result, 3);</span></span><br><span class="line"><span class="comment">/// ```</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">add</span>(a: <span class="type">i32</span>, b: <span class="type">i32</span>) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">    a + b</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/// 表示一个矩形的结构体</span></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">Rectangle</span> &#123;</span><br><span class="line">    width: <span class="type">u32</span>,</span><br><span class="line">    height: <span class="type">u32</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="内部文档注释（-）">内部文档注释（//!）</h3>
+<p>用于模块或包的整体文档：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">//! # 数学计算模块</span></span><br><span class="line"><span class="comment">//! </span></span><br><span class="line"><span class="comment">//! 这个模块提供了基本的数学计算功能。</span></span><br><span class="line"><span class="comment">//! </span></span><br><span class="line"><span class="comment">//! ## 主要功能：</span></span><br><span class="line"><span class="comment">//! - 基础运算</span></span><br><span class="line"><span class="comment">//! - 几何计算</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">mod</span> math &#123;</span><br><span class="line">    <span class="comment">// 模块内容</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="文档注释格式">文档注释格式</h2>
+<h3 id="常用章节标记">常用章节标记</h3>
+<ul>
+<li><code># Examples</code> - 示例代码</li>
+<li><code># Panics</code> - 可能的 panic 情况</li>
+<li><code># Errors</code> - 错误处理说明</li>
+<li><code># Safety</code> - 安全性说明</li>
+<li><code># Arguments</code> - 参数说明</li>
+<li><code># Returns</code> - 返回值说明</li>
+</ul>
+<h3 id="示例">示例</h3>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">/// 将字符串转换为大写</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # Arguments</span></span><br><span class="line"><span class="comment">/// * `text` - 要转换的字符串</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # Returns</span></span><br><span class="line"><span class="comment">/// 转换后的大写字符串</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # Examples</span></span><br><span class="line"><span class="comment">/// ```</span></span><br><span class="line"><span class="comment">/// let upper = to_uppercase(&quot;hello&quot;);</span></span><br><span class="line"><span class="comment">/// assert_eq!(upper, &quot;HELLO&quot;);</span></span><br><span class="line"><span class="comment">/// ```</span></span><br><span class="line"><span class="comment">/// </span></span><br><span class="line"><span class="comment">/// # Errors</span></span><br><span class="line"><span class="comment">/// 如果输入不是有效的 UTF-8 字符串，将返回错误</span></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">to_uppercase</span>(text: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">    text.<span class="title function_ invoke__">to_uppercase</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p align = "center">    
 <img  src="nanie.jpg" width="200" />
 </p>
